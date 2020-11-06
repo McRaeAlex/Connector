@@ -1,10 +1,10 @@
 use connector::{Connection, Server};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use hyper::rt::*;
 
-fn route(_conn: Connection) {
-    println!("Called");
+fn route(conn: Connection) {
+    conn.send_resp(hyper::http::StatusCode::OK, "Wow").expect("Failed");
 }
+
 #[tokio::main]
 async fn main() {
     // let rt = tokio::runtime::Runtime::new().unwrap();
