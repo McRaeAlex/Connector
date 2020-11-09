@@ -1,16 +1,14 @@
-use std::net::{IpAddr, SocketAddr};
-
-use hyper::http::{ HeaderMap, Method, StatusCode};
+use std::net::SocketAddr;
 use hyper::server::conn;
-use hyper::service::make_service_fn;
-use hyper::service::service_fn;
-use hyper::Body;
-use hyper::Error;
-use hyper::Request;
-use hyper::Response;
+use hyper::service::{service_fn, make_service_fn};
+use hyper::{Body, Error, Request, Response};
 use std::convert::Infallible;
 use std::sync::Arc;
 use tokio::sync::oneshot;
+
+pub mod connection;
+
+use connection::Connection;
 
 pub struct Server<C>
 where
@@ -23,7 +21,7 @@ where
 
 impl<C> Server<C>
 where
-    C: Fn(Connection) + Send + Copy + Sync + 'static,
+    C: Fn(Connection) + Clone + Send + Sync + 'static,
 {
     pub fn new(socket_addr: SocketAddr, connection_handler: C) -> Self {
         Server {
@@ -41,7 +39,7 @@ where
             async move {
                 Ok::<_, Infallible>(service_fn(move |req| {
                     let connector = connector.clone();
-                    handle_request(req, socket, connector.connection_handler) // TODO: we need some way to tell rust that this value lives forever
+                    handle_request(req, socket, connector.connection_handler.clone()) // TODO: we need some way to tell rust that this value lives forever
                 }))
             }
         });
@@ -87,93 +85,3 @@ where
 
     Ok(resp)
 }
-
-#[derive(Debug)]
-pub struct Connection {
-    // REQUEST FIELDS
-    host: String,
-    method: Method,
-    path: String, // maybe use the path type
-    port: u16,
-    remote_ip: IpAddr,
-    req_headers: HeaderMap,
-    scheme: String,         
-    query_string: String,
-    req_body: Body,
-
-    // RESPONSE FIELDS
-    status: Option<StatusCode>,
-    resp_body: Option<Body>, // Probably going to need my own type which can be converted into a Body and is clonable
-    resp_cookies: Option<()>,
-    resp_headers: HeaderMap,
-
-    // OTHER FIELDS
-    send: Option<oneshot::Sender<Response<Body>>>, // This will probably have to change
-}
-
-impl Connection {
-    pub fn put_status<S>(mut self, status_code: S) -> Self 
-    where
-        S: Into<StatusCode>
-        {
-        self.status = Some(status_code.into());
-        self
-    }
-
-    fn put_body<B>(mut self, body: B) -> Self 
-    where
-        B: Into<Body>
-    {
-        self.resp_body = Some(body.into());
-        self
-    }
-
-    pub fn send_resp<S, B>(self, status_code: S, body: B) -> Result<Self, Box<dyn std::error::Error>> 
-    where S: Into<StatusCode>, B: Into<Body>
-    {
-        self.put_status(status_code).put_body(body).send()
-    }
-
-    pub fn send(mut self) -> Result<Self, Box<dyn std::error::Error>> {
-
-        let mut resp = hyper::Response::builder()
-            .status(self.status.ok_or("Status not set")?);
-
-        let headers: &mut _ = resp.headers_mut().ok_or("Error setting headers")?;
-        *headers = self.resp_headers;
-
-        let body = self.resp_body.unwrap_or(Body::empty()); // I might have to write my own HttpBody implementation that is cloneable but I would prefer not too.
-        
-        let resp = resp
-            .body(body)
-            .expect("Failed to create response from connection");
-
-        self.send.ok_or("Response has already been sent")?.send(resp).expect("Failed to send response"); // if unwrap fails then we have failed
-        self.send = None;
-        Ok(self) // TODO: Error occurs here because we have no way to clone the body
-    }
-}
-
-impl From<(Request<Body>, SocketAddr)> for Connection {
-    // probably change this to (Request<Body>, hyper::Connection) to get the port and ip address
-    fn from((req, sock): (Request<Body>, SocketAddr)) -> Self {
-        let (parts, body) = req.into_parts();
-        Self {
-            method: parts.method,
-            req_headers: parts.headers,
-            scheme: parts.uri.scheme_str().unwrap_or("").into(),
-            host: parts.uri.host().unwrap_or("").into(), // maybe we have a default? idk what it would be
-            path: parts.uri.path().into(),
-            query_string: parts.uri.query().unwrap_or("").into(),
-            remote_ip: sock.ip(),
-            port: sock.port(),
-            req_body: body, 
-            send: None,
-            status: None,
-            resp_body: None,
-            resp_headers: HeaderMap::new(),
-            resp_cookies: None,
-        }
-    }
-}
-

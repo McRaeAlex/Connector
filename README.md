@@ -4,6 +4,4 @@ An rust library for composting http logic similar to elixir plug.
 
 ## Implementation
 
-Like plug connector aims to support multiple backend servers.
-Likely will just support hyper to start.
-Probably can just use http types for most types.
+There isn't an alternative to hyper so for now it will be used.
