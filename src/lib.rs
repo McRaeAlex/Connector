@@ -1,12 +1,13 @@
-use std::net::SocketAddr;
 use hyper::server::conn;
-use hyper::service::{service_fn, make_service_fn};
+use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Error, Request, Response};
 use std::convert::Infallible;
+use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::sync::oneshot;
 
 pub mod connection;
+pub use route::route;
 
 use connection::Connection;
 
@@ -39,7 +40,8 @@ where
             async move {
                 Ok::<_, Infallible>(service_fn(move |req| {
                     let connector = connector.clone();
-                    handle_request(req, socket, connector.connection_handler.clone()) // TODO: we need some way to tell rust that this value lives forever
+                    handle_request(req, socket, connector.connection_handler.clone())
+                    // TODO: we need some way to tell rust that this value lives forever
                 }))
             }
         });

@@ -1,14 +1,26 @@
-use connector::{connection::Connection, Server};
 use connector::route;
+use connector::{connection::Connection, Server};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-fn route(conn: Connection) {
-    route!(conn, hyper::Method::GET, "/", |conn: Connection| {
-        conn.send_resp(hyper::http::StatusCode::OK, "Wow")
+fn handle_root(conn: Connection, id: String) {
+    conn.send_resp(hyper::http::StatusCode::OK, format!("{}", id))
         .expect("Failed");
-    });
+}
 
-    conn.send_resp(hyper::http::StatusCode::NOT_FOUND, "Page not found").expect("Failed to send the message");
+fn route(conn: Connection) {
+    route!(conn, hyper::Method::GET, "/:id", handle_root);
+    route!(
+        conn,
+        hyper::Method::GET,
+        "/user/:id",
+        |conn: Connection, id: String| {
+            conn.send_resp(hyper::http::StatusCode::OK, format!("User id:{}", id))
+                .expect("Failed to send");
+        }
+    );
+
+    conn.send_resp(hyper::http::StatusCode::NOT_FOUND, "Page not found")
+        .expect("Failed to send the message");
 }
 
 #[tokio::main]

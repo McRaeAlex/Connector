@@ -49,7 +49,8 @@ impl Connection {
         self
     }
 
-    pub fn send_json(self, ) -> Result<Self, Box<dyn std::error::Error>> { // needs serde support
+    pub fn send_json(self) -> Result<Self, Box<dyn std::error::Error>> {
+        // needs serde support
         todo!();
     }
 

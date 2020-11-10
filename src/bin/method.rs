@@ -21,12 +21,12 @@ impl App {
 async fn main() {
     // let rt = tokio::runtime::Runtime::new().unwrap();
     // // let app = App {db_conn: "".into()};
-    let app = Arc::new(App{});
+    let app = Arc::new(App {});
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8888);
     let srv = Server::new(addr, move |conn: Connection| {
         app.route(conn);
     });
-    
+
     srv.start().await.expect("Something went wrong");
 
     println!("Hello");
