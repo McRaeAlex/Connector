@@ -8,7 +8,6 @@ fn handle_root(conn: Connection, id: String) {
 }
 
 fn route(conn: Connection) {
-    route!(conn, hyper::Method::GET, "/:id", handle_root);
     route!(
         conn,
         hyper::Method::GET,
@@ -18,6 +17,8 @@ fn route(conn: Connection) {
                 .expect("Failed to send");
         }
     );
+
+    route!(conn, hyper::Method::GET, "/:id", handle_root);
 
     conn.send_resp(hyper::http::StatusCode::NOT_FOUND, "Page not found")
         .expect("Failed to send the message");

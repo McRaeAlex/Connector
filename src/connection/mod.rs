@@ -1,4 +1,4 @@
-pub mod router;
+mod routing;
 
 use std::net::{IpAddr, SocketAddr};
 

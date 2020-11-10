@@ -34,6 +34,7 @@ where
     pub async fn start(self) -> Result<(), Error> {
         let builder = hyper::Server::try_bind(&self.socket_addr).expect("Failed to bind");
         let connector = Arc::new(self);
+        let local = connector.clone();
         let connector_service_fn = make_service_fn(move |sock: &conn::AddrStream| {
             let connector = connector.clone();
             let socket = sock.remote_addr();
@@ -46,7 +47,7 @@ where
             }
         });
 
-        println!("Started the server!");
+        println!("Starting the server {}", local.socket_addr);
         builder.serve(connector_service_fn).await
     }
 }

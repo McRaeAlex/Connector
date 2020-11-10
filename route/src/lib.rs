@@ -28,7 +28,6 @@ fn parse_path(tokens: syn::parse::ParseStream<'_>) -> syn::parse::Result<Vec<syn
         } else {
             return Err(syn::Error::new(tokens.span(), "Invalid path"));
         }
-        //println!("{:#?} {:?}", tokens , vars);
     }
 
     Ok(vars)
@@ -58,7 +57,7 @@ impl syn::parse::Parse for Route {
         let path: syn::LitStr = input.parse()?;
         input.parse::<syn::token::Comma>()?;
 
-        let func: syn::Expr = input.parse()?; // we should check if its a closure and if so wrap it s.t. it can be called.
+        let func: syn::Expr = input.parse()?;
 
         let vars = path.parse_with(parse_path)?;
 
@@ -87,7 +86,8 @@ impl Into<proc_macro::TokenStream> for Route {
                 if let Some(mut vars) = #conn.match_path(#path) {
                     #(let #vars = vars.next().unwrap().into();)*
 
-                    #func(#conn, #(#vars)*); // might have to assign this to something then call it with the .call method
+                    let func_expr = #func;
+                    func_expr(#conn, #(#vars)*);
                     return
                 }
             }
