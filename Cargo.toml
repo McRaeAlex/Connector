@@ -10,8 +10,6 @@ repository = "https://github.com/McRaeAlex/Connector"
 documentation = "https://docs.rs/connector"
 categories = ["web-programming", "web-programming::http-server"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 hyper = "0.13"
 tokio = { version = "0.2", features = ["full"] }
