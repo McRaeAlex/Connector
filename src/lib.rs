@@ -42,7 +42,6 @@ where
                 Ok::<_, Infallible>(service_fn(move |req| {
                     let connector = connector.clone();
                     handle_request(req, socket, connector.connection_handler.clone())
-                    // TODO: we need some way to tell rust that this value lives forever
                 }))
             }
         });

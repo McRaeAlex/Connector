@@ -38,10 +38,7 @@ impl Connection {
     pub fn match_method(&self, method: Method) -> bool {
         self.method == method
     }
-
-    // TODO: we currently only support matching the first part of a path.
-    // This means if we write route!(conn, Method::GET, "/user/:id", some_handler)
-    // it will match "/user/:id/anything"
+    
     pub fn match_path(&self, path: &str) -> Option<impl Iterator<Item = String>> {
         let mut vars: Vec<String> = vec![];
 

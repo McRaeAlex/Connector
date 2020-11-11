@@ -3,13 +3,18 @@ name = "connector"
 version = "0.0.1"
 authors = ["Alexander McRae <mcraealex16@gmail.com>"]
 edition = "2018"
+readme = "README.md"
+license = "MIT"
+description = "An rust library for composting http logic similar to elixir plug."
+repository = "https://github.com/McRaeAlex/Connector"
+documentation = "https://docs.rs/connector"
+categories = ["web-programming", "web-programming::http-server"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 hyper = "0.13"
 tokio = { version = "0.2", features = ["full"] }
-proc-macro2 = "1.0"
 route = {path = "route"}
 serde = "1.0"
 serde_json = "1.0"

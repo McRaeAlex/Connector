@@ -84,8 +84,14 @@ impl Into<proc_macro::TokenStream> for Route {
         quote!({
             if #conn.match_method(#method) {
                 if let Some(mut vars) = #conn.match_path(#path) {
-                    #(let #vars = vars.next().unwrap().as_str().parse();)* // TODO: try_into is an issue from_str is probably a better choice
-                    if [#(&#vars)*].iter().all(|f| f.is_ok()) {
+                    let mut matched = true;
+                    #(
+                        let #vars = vars.next().unwrap().as_str().parse();
+                        if matched && #vars.is_err() {
+                            matched = false;
+                        }
+                    )*
+                    if matched {
                         let func_expr = #func;
                         func_expr(#conn, #(#vars.unwrap())*);
                         return

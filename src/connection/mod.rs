@@ -44,6 +44,7 @@ impl Connection {
     }
 
     pub fn put_header(self) -> Self {
+        // figure out what we should take
         self
     }
 
