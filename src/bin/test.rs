@@ -2,7 +2,7 @@ use connector::route;
 use connector::{connection::Connection, Server};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-fn handle_root(conn: Connection, id: String) {
+fn handle_root(conn: Connection, id: usize) {
     conn.send_resp(hyper::http::StatusCode::OK, format!("{}", id))
         .expect("Failed");
 }
