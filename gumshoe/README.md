@@ -5,6 +5,6 @@ connector project.
 
 ## To do
 
-* Database migrations and scripts
+* Create the tables
 * Issue viewing
 * Homepage
