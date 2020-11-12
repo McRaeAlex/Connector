@@ -8,7 +8,7 @@ if [[ -n "$image" ]]; then
     echo "Docker image tagged as $DB_NAME exists."
 else
     echo "Docker image tagged as $DB_NAME does not exist. Building..."
-    ./db-build.sh
+    ./db-build.sh $DB_NAME
 fi
 
 # Start the database container

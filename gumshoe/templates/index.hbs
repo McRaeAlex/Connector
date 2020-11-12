@@ -8,5 +8,13 @@
 <body>
     <h1>GumShoe</h1>
     <h2>By Alexander McRae</h2>
+    <div>
+        <h4>Issues</h4>
+        <ul>
+            {{ #each issue as |i| ~}}
+                <li>{{t.id}} {{t.title}}</li>
+            {{/each~}}
+        </ul>
+    </div>
 </body>
 </html>

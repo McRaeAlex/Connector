@@ -99,8 +99,46 @@ impl Into<proc_macro::TokenStream> for Route {
     }
 }
 
+impl Route {
+    fn into_async(self) -> proc_macro::TokenStream {
+        let Self {
+            conn,
+            method,
+            path,
+            vars,
+            func,
+        } = self;
+        // This is where the output happens
+        quote!({
+            if #conn.match_method(#method) {
+                if let Some(mut vars) = #conn.match_path(#path) {
+                    let mut matched = true;
+                    #(
+                        let #vars = vars.next().unwrap().as_str().parse();
+                        if matched && #vars.is_err() {
+                            matched = false;
+                        }
+                    )*
+                    if matched {
+                        let func_expr = #func;
+                        func_expr(#conn, #(#vars.unwrap())*).await;
+                        return
+                    }
+                }
+            }
+        })
+        .into()
+    }
+}
+
 #[proc_macro]
 pub fn route(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input: Route = parse_macro_input!(input);
     input.into()
+}
+
+#[proc_macro]
+pub fn route_async(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input: Route = parse_macro_input!(input);
+    input.into_async()
 }

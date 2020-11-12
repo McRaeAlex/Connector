@@ -1,12 +1,17 @@
 use connector::connection::Connection;
 use connector::http::{Method, StatusCode};
-use connector::route;
 use connector::Server;
+use connector::{route, route_async};
 
 use handlebars::Handlebars;
 use sqlx::postgres::PgPool;
+use sqlx::prelude::*;
 
 use std::sync::Arc;
+
+mod issue;
+
+use issue::Issue;
 
 struct App<'a> {
     // probably some database connection pool
@@ -19,7 +24,7 @@ impl<'a> App<'a> {
         let mut hbs = Handlebars::new();
         hbs.register_templates_directory(".hbs", "templates")
             .expect("Failed to register template directory");
-            
+
         let db = PgPool::new(&std::env::var("DATABASE_URL").expect("DATABASE_URL not set"))
             .await
             .expect("failed to creat the postgres pool");
@@ -30,6 +35,7 @@ impl<'a> App<'a> {
     where
         T: serde::Serialize,
     {
+        println!("In send_template");
         let home = self
             .hbs
             .render(name, data)
@@ -38,7 +44,20 @@ impl<'a> App<'a> {
             .expect("Failed to send");
     }
 
-    fn route(&self, conn: Connection) {
+    async fn index(&self, conn: Connection) {
+        println!("Im in index");
+        // Get the issues from the database
+        let issues: Vec<Issue> = sqlx::query_as("SELECT id, title, body FROM issues")
+            .fetch_all(&self.db)
+            .await
+            .expect("failed to query database");
+        println!("After query");
+
+        // Render them into the template
+        self.send_template(conn, "index", &issues);
+    }
+
+    async fn route(&self, conn: Connection) {
         route!(
             conn,
             Method::GET,
@@ -47,8 +66,10 @@ impl<'a> App<'a> {
                 self.get_issue(conn, id);
             }
         );
-        route!(conn, Method::GET, "/", |conn: Connection| self
-            .send_template(conn, "index", &String::from("Hello")));
+        route_async!(conn, Method::GET, "/", move |conn: Connection| {
+            println!("About to run index");
+            return self.index(conn)
+        });
     }
 
     fn get_issue(&self, _conn: Connection, _id: usize) {
@@ -63,7 +84,11 @@ async fn main() {
     let srv = Server::new(
         "127.0.0.1:8080".parse().unwrap(),
         move |conn: Connection| {
-            app.route(conn);
+            let app = app.clone();
+            tokio::spawn(async move {
+                // Unfortunate but nessecary
+                app.route(conn).await;
+            });
         },
     );
 

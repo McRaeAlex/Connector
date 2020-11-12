@@ -10,5 +10,5 @@ edition = "2018"
 tokio = { version = "0.2", features = ["full"] }
 connector = { path = ".."}
 handlebars = { version = "3.5", features = ["dir_source"] }
-serde = "1.0"
+serde = {version = "1.0", features = ["derive"] }
 sqlx = { version = "0.3", default-features = false, features = ["runtime-tokio", "macros", "postgres"] }

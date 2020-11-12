@@ -8,7 +8,7 @@ use tokio::sync::oneshot;
 
 pub mod connection;
 pub use hyper::http;
-pub use route::route;
+pub use route::{route, route_async};
 
 use connection::Connection;
 
