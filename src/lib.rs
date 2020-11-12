@@ -7,6 +7,7 @@ use std::sync::Arc;
 use tokio::sync::oneshot;
 
 pub mod connection;
+pub use hyper::http;
 pub use route::route;
 
 use connection::Connection;

@@ -15,11 +15,18 @@ An rust library for composting http logic similar to elixir plug.
 
 ## To do
 
-* all the functions that act on connector
-  * Header function are done by exposing the HeaderMaps but this is probably wrong
+* Cookie handling
+* Error handling is awful right now
 * Probably put things behind feature flags
+* Graceful shutdown
+* Cross site scripting prevention
+* Resource! macro which expands into route!
 
 ## Completed
 
 * Server starts and serves requests correctly.
 * Can send json back
+
+## Demo application
+
+Gumshoe is a demo application for the http server

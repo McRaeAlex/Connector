@@ -1,7 +1,3 @@
-#![feature(trace_macros)]
-
-trace_macros!(false);
-
 use quote::quote;
 use syn::parse_macro_input;
 use syn::Token;
