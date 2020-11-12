@@ -5,6 +5,8 @@ connector project.
 
 ## To do
 
-* Create the tables
-* Issue viewing
-* Homepage
+* Ability to create new issue
+* Issue status
+* Search bar on homepage to filter the issues
+* Ability to add comments
+* Static asset serving

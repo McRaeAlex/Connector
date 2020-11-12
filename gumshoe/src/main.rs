@@ -21,7 +21,7 @@ struct Index {
     issues: Vec<Issue>,
 }
 
-fn static_server(conn: Connection, file: String) {
+fn _static_server(_conn: Connection, _file: String) {
     // read file into the string
     // set the content type based on the file extension
 }
@@ -98,7 +98,6 @@ async fn main() {
         move |conn: Connection| {
             let app = app.clone();
             tokio::spawn(async move {
-                // Unfortunate but nessecary
                 app.route(conn).await;
             });
         },
