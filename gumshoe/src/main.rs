@@ -4,8 +4,11 @@ use connector::Server;
 use connector::{route, route_async};
 
 use handlebars::Handlebars;
+
 use sqlx::postgres::PgPool;
 use sqlx::prelude::*;
+
+use serde_json::json;
 
 use std::sync::Arc;
 
@@ -35,26 +38,24 @@ impl<'a> App<'a> {
     where
         T: serde::Serialize,
     {
-        println!("In send_template");
         let home = self
             .hbs
             .render(name, data)
             .expect(format!("Failed to render template {}", name).as_str());
+            
         conn.send_resp(StatusCode::OK, home)
             .expect("Failed to send");
     }
 
     async fn index(&self, conn: Connection) {
-        println!("Im in index");
         // Get the issues from the database
         let issues: Vec<Issue> = sqlx::query_as("SELECT id, title, body FROM issues")
             .fetch_all(&self.db)
             .await
             .expect("failed to query database");
-        println!("After query");
 
         // Render them into the template
-        self.send_template(conn, "index", &issues);
+        self.send_template(conn, "index", &json!({ "issues": issues }));
     }
 
     async fn route(&self, conn: Connection) {
@@ -67,8 +68,7 @@ impl<'a> App<'a> {
             }
         );
         route_async!(conn, Method::GET, "/", move |conn: Connection| {
-            println!("About to run index");
-            return self.index(conn)
+            return self.index(conn);
         });
     }
 

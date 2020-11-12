@@ -1,7 +1,5 @@
--- Creates the tables but doesn't drop them
 CREATE TABLE issues (
-    id PRIMARY KEY,
-    title VARCHAR(256),
-    body TEXT
-    -- TODO come user who created it
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(256) NOT NULL,
+    body TEXT NOT NULL
 );
