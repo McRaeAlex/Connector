@@ -8,13 +8,23 @@ use handlebars::Handlebars;
 use sqlx::postgres::PgPool;
 use sqlx::prelude::*;
 
-use serde_json::json;
+use serde::Serialize;
 
 use std::sync::Arc;
 
 mod issue;
 
 use issue::Issue;
+
+#[derive(Debug, Serialize)]
+struct Index {
+    issues: Vec<Issue>,
+}
+
+fn static_server(conn: Connection, file: String) {
+    // read file into the string
+    // set the content type based on the file extension
+}
 
 struct App<'a> {
     // probably some database connection pool
@@ -42,7 +52,7 @@ impl<'a> App<'a> {
             .hbs
             .render(name, data)
             .expect(format!("Failed to render template {}", name).as_str());
-            
+
         conn.send_resp(StatusCode::OK, home)
             .expect("Failed to send");
     }
@@ -55,26 +65,28 @@ impl<'a> App<'a> {
             .expect("failed to query database");
 
         // Render them into the template
-        self.send_template(conn, "index", &json!({ "issues": issues }));
+        self.send_template(conn, "index", &Index { issues });
+    }
+
+    async fn get_issue(&self, conn: Connection, id: u32) {
+        let issue: Issue = sqlx::query_as("SELECT id, title, body FROM issues WHERE id = $1")
+            .bind(id)
+            .fetch_one(&self.db)
+            .await
+            .expect("Failed to get issue");
+        self.send_template(conn, "issue", &issue);
     }
 
     async fn route(&self, conn: Connection) {
-        route!(
+        route_async!(
             conn,
             Method::GET,
             "/issues/:id",
-            |conn: Connection, id: usize| {
-                self.get_issue(conn, id);
-            }
+            |conn: Connection, id: u32| { self.get_issue(conn, id) }
         );
-        route_async!(conn, Method::GET, "/", move |conn: Connection| {
+        route_async!(conn, Method::GET, "/", |conn: Connection| {
             return self.index(conn);
         });
-    }
-
-    fn get_issue(&self, _conn: Connection, _id: usize) {
-        // retrieve the issue from the database then return it
-        todo!();
     }
 }
 

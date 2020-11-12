@@ -7,13 +7,12 @@
 </head>
 <body>
     <h1>GumShoe</h1>
-    <h2>By Alexander McRae</h2>
     <div>
-        <h4>Issues</h4>
+        <h2>Issues</h2>
         <ul>
-            {{ #each issue as |i| ~}}
-                <li>{{t.id}} {{t.title}}</li>
-            {{/each~}}
+            {{#each issues as |i|}}
+                <li><a href="/issues/{{i.id}}">#{{i.id}} {{i.title}}<a></li>
+            {{/each}}
         </ul>
     </div>
 </body>
