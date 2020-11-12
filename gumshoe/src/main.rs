@@ -51,7 +51,7 @@ impl<'a> App<'a> {
             .send_template(conn, "index", &String::from("Hello")));
     }
 
-    fn get_issue(&self, conn: Connection, id: usize) {
+    fn get_issue(&self, _conn: Connection, _id: usize) {
         // retrieve the issue from the database then return it
         todo!();
     }

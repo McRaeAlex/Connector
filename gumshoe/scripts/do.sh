@@ -1,10 +1,15 @@
 #!/bin/bash
 
-docker build -f Database.dockerfile -t gumshoe_database
+DB_NAME="gumshoe_database"
 
-docker start gumshoe_database &
+result=$( docker images -q $DB_NAME )
+if [[ -n "$result" ]]; then
+    echo "Docker image tagged as $DB_NAME does not exist. Building..."
+    docker build -f Database.dockerfile -t $DB_NAME .
+else
+    echo "Docker image tagged as $DB_NAME exists. Moving forward..."
+fi
 
-# do our table stuff
-# migrate the tables up and stuff
+# Start the database container
+docker run $DB_NAME &
 
-cargo run
