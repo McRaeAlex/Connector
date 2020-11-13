@@ -15,6 +15,6 @@ fi
 docker run -p 5432:5432 $DB_NAME &> logs/db.log &
 echo "Started the container"
 
-export DATABASE_URL="postgresql://dev:dev@localhost:5432/gumshoe"
+export DATABASE_URL="postgresql://dev:dev@localhost:5432/gumshoe" 
 cargo run | tee logs/server.log
 

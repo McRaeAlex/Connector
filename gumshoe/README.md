@@ -10,3 +10,10 @@ connector project.
 * Search bar on homepage to filter the issues
 * Ability to add comments
 * Static asset serving
+
+## Lazy Static version
+
+Arguable the lazy static version is much prettier becuase the functions don't 
+hang off of a single struct which provides the resources but I will continue 
+with the orginal plan because I believe it is more likely people will do that
+in practice.

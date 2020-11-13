@@ -3,6 +3,7 @@ name = "gumshoe"
 version = "0.1.0"
 authors = ["Alexander McRae <mcraealex16@gmail.com>"]
 edition = "2018"
+default-run = "gumshoe"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -12,4 +13,6 @@ connector = { path = ".."}
 handlebars = { version = "3.5", features = ["dir_source"] }
 serde = {version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-sqlx = { version = "0.3", default-features = false, features = ["runtime-tokio", "macros", "postgres"] }
+sqlx = { version = "0.4", default-features = false, features = ["runtime-tokio-native-tls", "macros", "postgres"] }
+lazy_static = "1"
+async_once = "0.2.1"

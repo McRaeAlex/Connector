@@ -1,12 +1,11 @@
 use connector::connection::Connection;
 use connector::http::{Method, StatusCode};
 use connector::Server;
-use connector::{route, route_async};
+use connector::{route_async};
 
 use handlebars::Handlebars;
 
 use sqlx::postgres::PgPool;
-use sqlx::prelude::*;
 
 use serde::Serialize;
 
@@ -38,7 +37,7 @@ impl<'a> App<'a> {
         hbs.register_templates_directory(".hbs", "templates")
             .expect("Failed to register template directory");
 
-        let db = PgPool::new(&std::env::var("DATABASE_URL").expect("DATABASE_URL not set"))
+        let db = PgPool::connect(&std::env::var("DATABASE_URL").expect("DATABASE_URL not set"))
             .await
             .expect("failed to creat the postgres pool");
         App { db, hbs }
