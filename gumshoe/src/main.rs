@@ -1,7 +1,7 @@
 use connector::connection::Connection;
 use connector::http::{Method, StatusCode};
+use connector::route_async;
 use connector::Server;
-use connector::{route_async};
 
 use handlebars::Handlebars;
 
@@ -11,6 +11,7 @@ use serde::Serialize;
 
 use std::sync::Arc;
 
+mod handlers;
 mod issue;
 
 use issue::Issue;
@@ -61,18 +62,25 @@ impl<'a> App<'a> {
         let issues: Vec<Issue> = sqlx::query_as("SELECT id, title, body FROM issues")
             .fetch_all(&self.db)
             .await
-            .expect("failed to query database");
+            .expect("failed to query database"); // Internal server error
 
         // Render them into the template
         self.send_template(conn, "index", &Index { issues });
     }
 
     async fn get_issue(&self, conn: Connection, id: u32) {
-        let issue: Issue = sqlx::query_as("SELECT id, title, body FROM issues WHERE id = $1")
+        let issue: Issue = match sqlx::query_as("SELECT id, title, body FROM issues WHERE id = $1")
             .bind(id)
             .fetch_one(&self.db)
             .await
-            .expect("Failed to get issue");
+        {
+            Err(e) => {
+                self.handle_error(conn, e);
+                return;
+            }
+            Ok(val) => val,
+        };
+
         self.send_template(conn, "issue", &issue);
     }
 
