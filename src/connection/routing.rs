@@ -75,6 +75,10 @@ impl Connection {
             };
         }
 
+        if !conn_path.is_empty() { // only exact matches
+            return None;
+        }
+
         Some(vars.into_iter())
     }
 }

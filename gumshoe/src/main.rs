@@ -68,28 +68,16 @@ impl<'a> App<'a> {
         self.send_template(conn, "index", &Index { issues });
     }
 
-    async fn get_issue(&self, conn: Connection, id: u32) {
-        let issue: Issue = match sqlx::query_as("SELECT id, title, body FROM issues WHERE id = $1")
-            .bind(id)
-            .fetch_one(&self.db)
-            .await
-        {
-            Err(e) => {
-                self.handle_error(conn, e);
-                return;
-            }
-            Ok(val) => val,
-        };
-
-        self.send_template(conn, "issue", &issue);
-    }
-
     async fn route(&self, conn: Connection) {
+        // resource_async!(conn, "/issues", obj || Nothing)
+        route_async!(conn, Method::POST, "/issues/new", |conn: Connection| {
+            self.issues_new(conn)
+        });
         route_async!(
             conn,
             Method::GET,
             "/issues/:id",
-            |conn: Connection, id: u32| { self.get_issue(conn, id) }
+            |conn: Connection, id: u32| { self.issues_show(conn, id) }
         );
         route_async!(conn, Method::GET, "/", |conn: Connection| {
             return self.index(conn);
