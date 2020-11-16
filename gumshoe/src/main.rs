@@ -14,12 +14,6 @@ use std::sync::Arc;
 mod handlers;
 mod issue;
 
-use issue::Issue;
-
-#[derive(Debug, Serialize)]
-struct Index {
-    issues: Vec<Issue>,
-}
 
 fn _static_server(_conn: Connection, _file: String) {
     // read file into the string
@@ -46,7 +40,7 @@ impl<'a> App<'a> {
 
     fn send_template<T>(&self, conn: Connection, name: &str, data: &T)
     where
-        T: serde::Serialize,
+        T: Serialize,
     {
         let home = self
             .hbs
@@ -57,19 +51,8 @@ impl<'a> App<'a> {
             .expect("Failed to send");
     }
 
-    async fn index(&self, conn: Connection) {
-        // Get the issues from the database
-        let issues: Vec<Issue> = sqlx::query_as("SELECT id, title, body FROM issues")
-            .fetch_all(&self.db)
-            .await
-            .expect("failed to query database"); // Internal server error
-
-        // Render them into the template
-        self.send_template(conn, "index", &Index { issues });
-    }
-
     async fn route(&self, conn: Connection) {
-        // resource_async!(conn, "/issues", obj || Nothing)
+        // resource_async!(conn, "/issues", obj || Nothing) if a third arg isn't present just generate the functions not hanging off an object
         route_async!(conn, Method::POST, "/issues/new", |conn: Connection| {
             self.issues_new(conn)
         });
@@ -77,10 +60,13 @@ impl<'a> App<'a> {
             conn,
             Method::GET,
             "/issues/:id",
-            |conn: Connection, id: u32| { self.issues_show(conn, id) }
+            |conn: Connection, id: u32| self.issues_show(conn, id)
         );
-        route_async!(conn, Method::GET, "/", |conn: Connection| {
-            return self.index(conn);
+        route_async!(conn, Method::GET, "/issues", |conn: Connection| self.issues_index(conn));
+
+        // static file server.
+        route_async!(conn, Method::GET, "/:file", |conn: Connection, _file: String| {
+            return self.issues_index(conn);
         });
     }
 }

@@ -1,5 +1,11 @@
 use connector::connection::Connection;
 use serde::Serialize;
+
+
+#[derive(Debug, Serialize)]
+struct Index {
+    issues: Vec<Issue>,
+}
 #[derive(sqlx::FromRow, Serialize, Debug)]
 pub struct Issue {
     id: i32,
@@ -11,7 +17,14 @@ use crate::App;
 
 impl<'a> App<'a> {
     pub async fn issues_index(&self, conn: Connection) {
-        self.index(conn).await;
+        // Get the issues from the database
+        let issues: Vec<Issue> = sqlx::query_as("SELECT id, title, body FROM issues")
+            .fetch_all(&self.db)
+            .await
+            .expect("failed to query database"); // Internal server error
+
+        // Render them into the template
+        self.send_template(conn, "index", &Index { issues });
     }
 
     pub async fn issues_show(&self, conn: Connection, id: u32) {

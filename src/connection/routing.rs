@@ -74,10 +74,8 @@ impl Connection {
                 },
             };
         }
-
-        if !conn_path.is_empty() { // only exact matches
-            return None;
-        }
+        
+        // TODO: We either need to match on the exact path or figure out the correct behavior
 
         Some(vars.into_iter())
     }

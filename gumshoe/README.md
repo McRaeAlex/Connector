@@ -5,11 +5,7 @@ connector project.
 
 ## To do
 
-* Ability to create new issue
-* Issue status
-* Search bar on homepage to filter the issues
-* Ability to add comments
-* Static asset serving
+* Basic CRUD only for issues. Then worry about other stuff.
 
 ## Lazy Static version
 
