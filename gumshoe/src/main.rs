@@ -1,6 +1,6 @@
 use connector::connection::Connection;
 use connector::http::{Method, StatusCode};
-use connector::route_async;
+use connector::{route, route_async};
 use connector::Server;
 
 use handlebars::Handlebars;
@@ -10,15 +10,14 @@ use sqlx::postgres::PgPool;
 use serde::Serialize;
 
 use std::sync::Arc;
+use std::fs::{File};
+use std::io::ErrorKind;
+use std::io::prelude::*;
+use std::path::Path;
 
 mod handlers;
 mod issue;
 
-
-fn _static_server(_conn: Connection, _file: String) {
-    // read file into the string
-    // set the content type based on the file extension
-}
 
 struct App<'a> {
     // probably some database connection pool
@@ -37,6 +36,24 @@ impl<'a> App<'a> {
             .expect("failed to creat the postgres pool");
         App { db, hbs }
     }
+
+    fn static_server(&self, conn: Connection, file: String) { // TODO: Escape the .. so we cannot read other assets on the computer
+        let path = Path::new("./static").join(file);
+        match File::open(path).map_err(|e| e.kind()) {
+            Ok(mut file) => {
+                let mut s = String::new();
+                file.read_to_string(&mut s).expect("Failed to read string");
+                conn.send_resp(StatusCode::OK, s).expect("Failed to send");
+            },
+            Err(ErrorKind::NotFound) => {
+                self.handle_404(conn);
+            },
+            Err(e) => {
+                eprintln!("Error: {:?}", e);
+            }
+        }
+    }
+    
 
     fn send_template<T>(&self, conn: Connection, name: &str, data: &T)
     where
@@ -62,12 +79,19 @@ impl<'a> App<'a> {
             "/issues/:id",
             |conn: Connection, id: u32| self.issues_show(conn, id)
         );
+        route_async!(conn, Method::DELETE, "/issues/:id", |conn: Connection, id: u32| self.issues_delete(conn, id));
+        route_async!(conn, Method::PUT, "/issues/:id",  |conn: Connection, id: u32| self.issues_edit(conn, id));
         route_async!(conn, Method::GET, "/issues", |conn: Connection| self.issues_index(conn));
 
         // static file server.
-        route_async!(conn, Method::GET, "/:file", |conn: Connection, _file: String| {
-            return self.issues_index(conn);
-        });
+        route!( // TODO: we cannot have /issues and /issues/new.html....
+            conn,
+            Method::GET,
+            "/:file",
+            |conn: Connection, file: String| {
+                self.static_server(conn, file)
+            }
+        );
     }
 }
 

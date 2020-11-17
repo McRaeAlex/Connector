@@ -1,28 +1,27 @@
-use connector::Server;
 use connector::connection::Connection;
 use connector::http::{Method, StatusCode};
-use connector::{route_async};
+use connector::route_async;
+use connector::Server;
 
-use lazy_static::lazy_static;
-use handlebars::Handlebars;
-use sqlx::PgPool;
 use async_once::AsyncOnce;
+use handlebars::Handlebars;
+use lazy_static::lazy_static;
 use serde::Serialize;
+use sqlx::PgPool;
 
-
-lazy_static!{
+lazy_static! {
     static ref HBS: Handlebars<'static> = {
         let mut hbs = Handlebars::new();
         hbs.register_templates_directory(".hbs", "templates")
             .expect("Failed to register template directory");
         hbs
     };
-
     static ref DB: AsyncOnce<PgPool> = AsyncOnce::new(async {
-        PgPool::connect(&std::env::var("DATABASE_URL").expect("DATABASE_URL not set")).await.expect("Failed to connect to the database")
+        PgPool::connect(&std::env::var("DATABASE_URL").expect("DATABASE_URL not set"))
+            .await
+            .expect("Failed to connect to the database")
     });
 }
-
 
 #[derive(Debug, Serialize)]
 struct Index {
@@ -36,16 +35,16 @@ struct Issue {
 }
 
 fn send_template<T>(conn: Connection, name: &str, data: &T)
-    where
-        T: serde::Serialize,
-    {
-        let home = HBS
-            .render(name, data)
-            .expect(format!("Failed to render template {}", name).as_str());
+where
+    T: serde::Serialize,
+{
+    let home = HBS
+        .render(name, data)
+        .expect(format!("Failed to render template {}", name).as_str());
 
-        conn.send_resp(StatusCode::OK, home)
-            .expect("Failed to send");
-    }
+    conn.send_resp(StatusCode::OK, home)
+        .expect("Failed to send");
+}
 
 async fn get_issue(conn: Connection, id: u32) {
     let issue: Issue = sqlx::query_as("SELECT id, title, body FROM issues WHERE id = $1")

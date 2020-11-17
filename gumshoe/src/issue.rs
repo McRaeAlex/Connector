@@ -1,6 +1,9 @@
 use connector::connection::Connection;
+use connector::http::{
+    header::{HeaderName, HeaderValue},
+    StatusCode,
+};
 use serde::Serialize;
-
 
 #[derive(Debug, Serialize)]
 struct Index {
@@ -45,16 +48,33 @@ impl<'a> App<'a> {
 
     pub async fn issues_new(&self, conn: Connection) {
         // parse the body as a form
+        println!("{:?}", conn.read_body());
         // parse that form into vars
         // insert into database
-        todo!();
     }
 
-    pub async fn issues_delete(&self, conn: Connection) {
-        todo!();
+    pub async fn issues_delete(&self, conn: Connection, id: u32) {
+        match sqlx::query("DELETE FROM issues WHERE id = $1")
+            .bind(id)
+            .execute(&self.db)
+            .await
+        {
+            Ok(_) => {}
+            Err(e) => {
+                self.handle_error(conn, e);
+                return;
+            }
+        }
+
+        conn.put_status(StatusCode::PERMANENT_REDIRECT)
+            .put_resp_header(
+                HeaderName::from_static("Location"),
+                HeaderValue::from_static("/issues"),
+            )
+            .send().expect("Failed to send");
     }
 
-    pub async fn issues_edit(&self, conn: Connection) {
+    pub async fn issues_edit(&self, conn: Connection, id: u32) {
         todo!();
     }
 }

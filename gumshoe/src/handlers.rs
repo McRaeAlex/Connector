@@ -4,7 +4,6 @@ use serde::Serialize;
 
 use super::App;
 
-
 #[derive(Debug, Serialize)]
 struct FourOhFour {}
 
@@ -16,7 +15,7 @@ impl<'a> App<'a> {
         }
     }
 
-    fn handle_404(&self, conn: Connection) {
-        self.send_template(conn,"404", &FourOhFour{})
+    pub fn handle_404(&self, conn: Connection) {
+        self.send_template(conn, "404", &FourOhFour {})
     }
 }
